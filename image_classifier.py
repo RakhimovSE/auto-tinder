@@ -39,14 +39,18 @@ def negative(arg):
     next_img()
 
 
-if __name__ == "__main__":
+def click_handler(event):
+    event.widget.focus_set()  # give keyboard focus to the label
+    event.widget.bind('<Left>', negative)
+    event.widget.bind('<Right>', positive)
 
+
+if __name__ == "__main__":
     root = tk.Tk()
 
     img_label = tk.Label(root)
     img_label.pack()
-    img_label.bind("<Button-1>", positive)
-    img_label.bind("<Button-3>", negative)
+    img_label.bind("<Button-1>", click_handler)
 
     btn = tk.Button(root, text='Next image', command=next_img)
 
