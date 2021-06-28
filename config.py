@@ -1,3 +1,4 @@
+TINDER_URL = "https://api.gotinder.com"
 PROF_FILE = "./profiles.txt"
 IMAGE_FOLDER = "./images/unclassified"
 POS_FOLDER = "./images/classified/positive"
