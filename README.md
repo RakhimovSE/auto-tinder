@@ -190,7 +190,7 @@ from geopy.geocoders import Nominatim
 
 TINDER_URL = "https://api.gotinder.com"
 geolocator = Nominatim(user_agent="auto-tinder")
-PROF_FILE = "./images/unclassified/profiles.txt"
+PROF_FILE = "./profiles.txt"
 
 class Person(object):
 
@@ -289,7 +289,7 @@ First, let's extend our Person class with a function that allows us to download 
 
 ```python
 # At the top of auto_tinder.py
-PROF_FILE = "./images/unclassified/profiles.txt"
+PROF_FILE = "./profiles.txt"
 
 # inside the Person-class
     def download_images(self, folder=".", sleep_max_for=0):

@@ -1,14 +1,14 @@
 import os
-import person_detector
+
 import tensorflow as tf
+
+from config import IMAGE_FOLDER, POS_FOLDER, NEG_FOLDER
+import person_detector
 
 command = """
 python retrain.py --bottleneck_dir=tf/training_data/bottlenecks --model_dir=tf/training_data/inception --summaries_dir=tf/training_data/summaries/basic --output_graph=tf/training_output/retrained_graph.pb --output_labels=tf/training_output/retrained_labels.txt --image_dir=./images/classified --how_many_training_steps=50000 --testing_percentage=20 --learning_rate=0.001
 """
 
-IMAGE_FOLDER = "./images/unclassified"
-POS_FOLDER = "./images/classified/positive"
-NEG_FOLDER = "./images/classified/negative"
 LOVOO_FOLDER = "./images/lovoo"
 
 

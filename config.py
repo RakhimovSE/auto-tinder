@@ -1,0 +1,5 @@
+PROF_FILE = "./profiles.txt"
+IMAGE_FOLDER = "./images/unclassified"
+POS_FOLDER = "./images/classified/positive"
+NEG_FOLDER = "./images/classified/negative"
+TOKEN = "YOUR-TOKEN-API"

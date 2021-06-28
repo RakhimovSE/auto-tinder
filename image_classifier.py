@@ -1,9 +1,10 @@
 from os import listdir, rename
 from os.path import isfile, join
+
 import tkinter as tk
 from PIL import ImageTk, Image
 
-IMAGE_FOLDER = "./images/unclassified"
+from config import IMAGE_FOLDER
 
 images = [f for f in listdir(IMAGE_FOLDER) if isfile(join(IMAGE_FOLDER, f))]
 unclassified_images = filter(lambda image: not (image.startswith("0_") or image.startswith("1_")), images)

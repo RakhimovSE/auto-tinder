@@ -1,16 +1,17 @@
 import requests
 import datetime
+from time import sleep, time
+
+import tensorflow as tf
 from geopy.geocoders import Nominatim
-from time import sleep
 from random import random
+
+from config import PROF_FILE, TOKEN
 from likeliness_classifier import Classifier
 import person_detector
-import tensorflow as tf
-from time import time
 
 TINDER_URL = "https://api.gotinder.com"
 geolocator = Nominatim(user_agent="auto-tinder")
-PROF_FILE = "./images/unclassified/profiles.txt"
 
 class tinderAPI():
 
@@ -132,8 +133,7 @@ class Profile(Person):
 
 
 if __name__ == "__main__":
-    token = "YOUR-API-TOKEN"
-    api = tinderAPI(token)
+    api = tinderAPI(TOKEN)
 
     detection_graph = person_detector.open_graph()
     with detection_graph.as_default():
