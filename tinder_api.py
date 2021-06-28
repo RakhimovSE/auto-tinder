@@ -34,4 +34,5 @@ class TinderAPI:
     def nearby_persons(self):
         data = requests.get(TINDER_URL + "/v2/recs/core",
                             headers={"X-Auth-Token": self._token}).json()
-        return list(map(lambda user: Person(user["user"], self), data["data"]["results"]))
+        return list(map(lambda user: Person(user["user"], self, user["distance_mi"]),
+                        data["data"]["results"]))

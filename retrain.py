@@ -30,7 +30,7 @@ representation. If the softmax layer contains N labels, this corresponds
 to learning N + 2048*N model parameters for the biases and weights.
 
 Here's an example, which assumes you have a folder containing class-named
-subfolders, each full of images for each label. The example folder flower_photos
+subfolders, each full of data for each label. The example folder flower_photos
 should have a structure like this:
 
 ~/flower_photos/daisy/photo1.jpg
@@ -45,7 +45,7 @@ each image, but the filenames themselves don't matter. (For a working example,
 download http://download.tensorflow.org/example_images/flower_photos.tgz
 and run  tar xzf flower_photos.tgz  to unpack it.)
 
-Once your images are prepared, and you have pip-installed tensorflow-hub and
+Once your data are prepared, and you have pip-installed tensorflow-hub and
 a sufficiently recent version of tensorflow, you can run the training with a
 command like this:
 
@@ -54,7 +54,7 @@ python retrain.py --image_dir ~/flower_photos
 ```
 
 You can replace the image_dir argument with any folder containing subfolders of
-images. The label for each image is taken from the name of the subfolder it's
+data. The label for each image is taken from the name of the subfolder it's
 in.
 
 This produces a new model file that can be loaded and run by any TensorFlow
@@ -147,19 +147,19 @@ FAKE_QUANT_OPS = ('FakeQuantWithMinMaxVars',
 
 
 def create_image_lists(image_dir, testing_percentage, validation_percentage):
-    """Builds a list of training images from the file system.
+    """Builds a list of training data from the file system.
 
     Analyzes the sub folders in the image directory, splits them into stable
     training, testing, and validation sets, and returns a data structure
-    describing the lists of images for each label and their paths.
+    describing the lists of data for each label and their paths.
 
     Args:
-      image_dir: String path to a folder containing subfolders of images.
-      testing_percentage: Integer percentage of the images to reserve for tests.
-      validation_percentage: Integer percentage of images reserved for validation.
+      image_dir: String path to a folder containing subfolders of data.
+      testing_percentage: Integer percentage of the data to reserve for tests.
+      validation_percentage: Integer percentage of data reserved for validation.
 
     Returns:
-      An OrderedDict containing an entry for each label subfolder, with images
+      An OrderedDict containing an entry for each label subfolder, with data
       split into training, testing, and validation sets within each label.
       The order of items defines the class indices.
     """
@@ -179,7 +179,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
         dir_name = os.path.basename(sub_dir)
         if dir_name == image_dir:
             continue
-        tf.logging.info("Looking for images in '" + dir_name + "'")
+        tf.logging.info("Looking for data in '" + dir_name + "'")
         for extension in extensions:
             file_glob = os.path.join(image_dir, dir_name, '*.' + extension)
             file_list.extend(tf.gfile.Glob(file_glob))
@@ -188,10 +188,10 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
             continue
         if len(file_list) < 20:
             tf.logging.warning(
-                'WARNING: Folder has less than 20 images, which may cause issues.')
+                'WARNING: Folder has less than 20 data, which may cause issues.')
         elif len(file_list) > MAX_NUM_IMAGES_PER_CLASS:
             tf.logging.warning(
-                'WARNING: Folder {} has more than {} images. Some images will '
+                'WARNING: Folder {} has more than {} data. Some data will '
                 'never be selected.'.format(dir_name, MAX_NUM_IMAGES_PER_CLASS))
         label_name = re.sub(r'[^a-z0-9]+', ' ', dir_name.lower())
         training_images = []
@@ -235,13 +235,13 @@ def get_image_path(image_lists, label_name, index, image_dir, category):
     """Returns a path to an image for a label at the given index.
 
     Args:
-      image_lists: OrderedDict of training images for each label.
+      image_lists: OrderedDict of training data for each label.
       label_name: Label string we want to get an image for.
       index: Int offset of the image we want. This will be moduloed by the
-      available number of images for the label, so it can be arbitrarily large.
+      available number of data for the label, so it can be arbitrarily large.
       image_dir: Root folder string of the subfolders containing the training
-      images.
-      category: Name string of set to pull images from - training, testing, or
+      data.
+      category: Name string of set to pull data from - training, testing, or
       validation.
 
     Returns:
@@ -255,7 +255,7 @@ def get_image_path(image_lists, label_name, index, image_dir, category):
         tf.logging.fatal('Category does not exist %s.', category)
     category_list = label_lists[category]
     if not category_list:
-        tf.logging.fatal('Label %s has no images in the category %s.',
+        tf.logging.fatal('Label %s has no data in the category %s.',
                          label_name, category)
     mod_index = index % len(category_list)
     base_name = category_list[mod_index]
@@ -269,12 +269,12 @@ def get_bottleneck_path(image_lists, label_name, index, bottleneck_dir,
     """Returns a path to a bottleneck file for a label at the given index.
 
     Args:
-      image_lists: OrderedDict of training images for each label.
+      image_lists: OrderedDict of training data for each label.
       label_name: Label string we want to get an image for.
       index: Integer offset of the image we want. This will be moduloed by the
-      available number of images for the label, so it can be arbitrarily large.
+      available number of data for the label, so it can be arbitrarily large.
       bottleneck_dir: Folder string holding cached files of bottleneck values.
-      category: Name string of set to pull images from - training, testing, or
+      category: Name string of set to pull data from - training, testing, or
       validation.
       module_name: The name of the image module being used.
 
@@ -297,7 +297,7 @@ def create_module_graph(module_spec):
     Returns:
       graph: the tf.Graph that was created.
       bottleneck_tensor: the bottleneck values output by the module.
-      resized_input_tensor: the input images, resized as expected by the module.
+      resized_input_tensor: the input data, resized as expected by the module.
       wants_quantization: a boolean, whether the module has been instrumented
         with fake quantization ops.
     """
@@ -381,13 +381,13 @@ def get_or_create_bottleneck(sess, image_lists, label_name, index, image_dir,
 
     Args:
       sess: The current active TensorFlow Session.
-      image_lists: OrderedDict of training images for each label.
+      image_lists: OrderedDict of training data for each label.
       label_name: Label string we want to get an image for.
       index: Integer offset of the image we want. This will be modulo-ed by the
-      available number of images for the label, so it can be arbitrarily large.
+      available number of data for the label, so it can be arbitrarily large.
       image_dir: Root folder string of the subfolders containing the training
-      images.
-      category: Name string of which set to pull images from - training, testing,
+      data.
+      category: Name string of which set to pull data from - training, testing,
       or validation.
       bottleneck_dir: Folder string holding cached files of bottleneck values.
       jpeg_data_tensor: The tensor to feed loaded jpeg data into.
@@ -440,14 +440,14 @@ def cache_bottlenecks(sess, image_lists, image_dir, bottleneck_dir,
     distortions applied during training) it can speed things up a lot if we
     calculate the bottleneck layer values once for each image during
     preprocessing, and then just read those cached values repeatedly during
-    training. Here we go through all the images we've found, calculate those
+    training. Here we go through all the data we've found, calculate those
     values, and save them off.
 
     Args:
       sess: The current active TensorFlow Session.
-      image_lists: OrderedDict of training images for each label.
+      image_lists: OrderedDict of training data for each label.
       image_dir: Root folder string of the subfolders containing the training
-      images.
+      data.
       bottleneck_dir: Folder string holding cached files of bottleneck values.
       jpeg_data_tensor: Input tensor for jpeg data from file.
       decoded_image_tensor: The output of decoding and resizing the image.
@@ -479,22 +479,22 @@ def get_random_cached_bottlenecks(sess, image_lists, how_many, category,
                                   bottleneck_dir, image_dir, jpeg_data_tensor,
                                   decoded_image_tensor, resized_input_tensor,
                                   bottleneck_tensor, module_name):
-    """Retrieves bottleneck values for cached images.
+    """Retrieves bottleneck values for cached data.
 
     If no distortions are being applied, this function can retrieve the cached
-    bottleneck values directly from disk for images. It picks a random set of
-    images from the specified category.
+    bottleneck values directly from disk for data. It picks a random set of
+    data from the specified category.
 
     Args:
       sess: Current TensorFlow Session.
-      image_lists: OrderedDict of training images for each label.
+      image_lists: OrderedDict of training data for each label.
       how_many: If positive, a random sample of this size will be chosen.
       If negative, all bottlenecks will be retrieved.
       category: Name string of which set to pull from - training, testing, or
       validation.
       bottleneck_dir: Folder string holding cached files of bottleneck values.
       image_dir: Root folder string of the subfolders containing the training
-      images.
+      data.
       jpeg_data_tensor: The layer to feed jpeg image data into.
       decoded_image_tensor: The output of decoding and resizing the image.
       resized_input_tensor: The input node of the recognition graph.
@@ -544,22 +544,22 @@ def get_random_cached_bottlenecks(sess, image_lists, how_many, category,
 def get_random_distorted_bottlenecks(
         sess, image_lists, how_many, category, image_dir, input_jpeg_tensor,
         distorted_image, resized_input_tensor, bottleneck_tensor):
-    """Retrieves bottleneck values for training images, after distortions.
+    """Retrieves bottleneck values for training data, after distortions.
 
     If we're training with distortions like crops, scales, or flips, we have to
     recalculate the full model for every image, and so we can't use cached
-    bottleneck values. Instead we find random images for the requested category,
+    bottleneck values. Instead we find random data for the requested category,
     run them through the distortion graph, and then the full graph to get the
     bottleneck results for each.
 
     Args:
       sess: Current TensorFlow Session.
-      image_lists: OrderedDict of training images for each label.
+      image_lists: OrderedDict of training data for each label.
       how_many: The integer number of bottleneck values to return.
-      category: Name string of which set of images to fetch - training, testing,
+      category: Name string of which set of data to fetch - training, testing,
       or validation.
       image_dir: Root folder string of the subfolders containing the training
-      images.
+      data.
       input_jpeg_tensor: The input layer we feed the image data to.
       distorted_image: The output node of the distortion graph.
       resized_input_tensor: The input node of the recognition graph.
@@ -598,7 +598,7 @@ def should_distort_images(flip_left_right, random_crop, random_scale,
     """Whether any distortions are enabled, from the input flags.
 
     Args:
-      flip_left_right: Boolean whether to randomly mirror images horizontally.
+      flip_left_right: Boolean whether to randomly mirror data horizontally.
       random_crop: Integer percentage setting the total margin used around the
       crop box.
       random_scale: Integer percentage of how much to vary the scale by.
@@ -615,7 +615,7 @@ def add_input_distortions(flip_left_right, random_crop, random_scale,
                           random_brightness, module_spec):
     """Creates the operations to apply the specified distortions.
 
-    During training it can help to improve the results if we run the images
+    During training it can help to improve the results if we run the data
     through simple distortions like crops, scales, and flips. These reflect the
     kind of variations we expect in the real world, and so can help train the
     model to cope with natural data more effectively. Here we take the supplied
@@ -654,7 +654,7 @@ def add_input_distortions(flip_left_right, random_crop, random_scale,
     a random range between half the width and height and full size.
 
     Args:
-      flip_left_right: Boolean whether to randomly mirror images horizontally.
+      flip_left_right: Boolean whether to randomly mirror data horizontally.
       random_crop: Integer percentage setting the total margin used around the
       crop box.
       random_scale: Integer percentage of how much to vary the scale by.
@@ -831,7 +831,7 @@ def run_final_eval(train_session, module_spec, class_count, image_lists,
       train_session: Session for the train graph with the tensors below.
       module_spec: The hub.ModuleSpec for the image module being used.
       class_count: Number of classes
-      image_lists: OrderedDict of training images for each label.
+      image_lists: OrderedDict of training data for each label.
       jpeg_data_tensor: The layer to feed jpeg image data into.
       decoded_image_tensor: The output of decoding and resizing the image.
       resized_image_tensor: The input node of the recognition graph.
@@ -996,15 +996,15 @@ def main(_):
     # Prepare necessary directories that can be used during training
     prepare_file_system()
 
-    # Look at the folder structure, and create lists of all the images.
+    # Look at the folder structure, and create lists of all the data.
     image_lists = create_image_lists(FLAGS.image_dir, FLAGS.testing_percentage,
                                      FLAGS.validation_percentage)
     class_count = len(image_lists.keys())
     if class_count == 0:
-        tf.logging.error('No valid folders of images found at ' + FLAGS.image_dir)
+        tf.logging.error('No valid folders of data found at ' + FLAGS.image_dir)
         return -1
     if class_count == 1:
-        tf.logging.error('Only one valid folder of images found at ' +
+        tf.logging.error('Only one valid folder of data found at ' +
                          FLAGS.image_dir +
                          ' - multiple classes are needed for classification.')
         return -1
@@ -1139,7 +1139,7 @@ def main(_):
         train_saver.save(sess, CHECKPOINT_NAME)
 
         # We've completed all our training, so run a final test evaluation on
-        # some new images we haven't used before.
+        # some new data we haven't used before.
         run_final_eval(sess, module_spec, class_count, image_lists,
                        jpeg_data_tensor, decoded_image_tensor, resized_image_tensor,
                        bottleneck_tensor)
@@ -1175,7 +1175,7 @@ if __name__ == '__main__':
         '--image_dir',
         type=str,
         default='',
-        help='Path to folders of labeled images.'
+        help='Path to folders of labeled data.'
     )
     parser.add_argument(
         '--output_graph',
@@ -1226,13 +1226,13 @@ if __name__ == '__main__':
         '--testing_percentage',
         type=int,
         default=10,
-        help='What percentage of images to use as a test set.'
+        help='What percentage of data to use as a test set.'
     )
     parser.add_argument(
         '--validation_percentage',
         type=int,
         default=10,
-        help='What percentage of images to use as a validation set.'
+        help='What percentage of data to use as a validation set.'
     )
     parser.add_argument(
         '--eval_step_interval',
@@ -1244,14 +1244,14 @@ if __name__ == '__main__':
         '--train_batch_size',
         type=int,
         default=100,
-        help='How many images to train on at a time.'
+        help='How many data to train on at a time.'
     )
     parser.add_argument(
         '--test_batch_size',
         type=int,
         default=-1,
         help="""\
-      How many images to test on. This test set is only used once, to evaluate
+      How many data to test on. This test set is only used once, to evaluate
       the final accuracy of the model after training completes.
       A value of -1 causes the entire test set to be used, which leads to more
       stable results across runs.\
@@ -1262,7 +1262,7 @@ if __name__ == '__main__':
         type=int,
         default=100,
         help="""\
-      How many images to use in an evaluation batch. This validation set is
+      How many data to use in an evaluation batch. This validation set is
       used much more often than the test set, and is an early indicator of how
       accurate the model is during training.
       A value of -1 causes the entire validation set to be used, which leads to
@@ -1274,7 +1274,7 @@ if __name__ == '__main__':
         '--print_misclassified_test_images',
         default=False,
         help="""\
-      Whether to print out a list of all misclassified test images.\
+      Whether to print out a list of all misclassified test data.\
       """,
         action='store_true'
     )
@@ -1296,7 +1296,7 @@ if __name__ == '__main__':
         '--flip_left_right',
         default=False,
         help="""\
-      Whether to randomly flip half of the training images horizontally.\
+      Whether to randomly flip half of the training data horizontally.\
       """,
         action='store_true'
     )
@@ -1306,7 +1306,7 @@ if __name__ == '__main__':
         default=0,
         help="""\
       A percentage determining how much of a margin to randomly crop off the
-      training images.\
+      training data.\
       """
     )
     parser.add_argument(
@@ -1315,7 +1315,7 @@ if __name__ == '__main__':
         default=0,
         help="""\
       A percentage determining how much to randomly scale up the size of the
-      training images by.\
+      training data by.\
       """
     )
     parser.add_argument(

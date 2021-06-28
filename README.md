@@ -326,9 +326,9 @@ if __name__ == "__main__":
     while True:
         persons = api.nearby_persons()
         for person in persons:
-            person.download_images(folder="./images/unclassified", sleep_max_for=random()*3)
-            sleep(random()*10)
-        sleep(random()*10)
+            person.download_data(sleep_max_for=random() * 3)
+            sleep(random() * 10)
+        sleep(random() * 10)
 ```
 
 We can now simply start this script and let it run for a few hours to get a few hundret profile images of people 
@@ -352,7 +352,7 @@ from os.path import isfile, join
 import tkinter as tk
 from PIL import ImageTk, Image
 
-IMAGE_FOLDER = "./images/unclassified"
+IMAGE_FOLDER = "./data/unclassified"
 
 images = [f for f in listdir(IMAGE_FOLDER) if isfile(join(IMAGE_FOLDER, f))]
 unclassified_images = filter(lambda image: not (image.startswith("0_") or image.startswith("1_")), images)
@@ -572,9 +572,9 @@ import os
 import person_detector
 import tensorflow as tf
 
-IMAGE_FOLDER = "./images/unclassified"
-POS_FOLDER = "./images/classified/positive"
-NEG_FOLDER = "./images/classified/negative"
+IMAGE_FOLDER = "./data/unclassified"
+POS_FOLDER = "./data/classified/positive"
+NEG_FOLDER = "./data/classified/negative"
 
 
 if __name__ == "__main__":
@@ -722,7 +722,7 @@ instance to verify whether a given person should be liked or not.
         ratings = []
         for image in self.images:
             req = requests.get(image, stream=True)
-            tmp_filename = f"./images/tmp/run.jpg"
+            tmp_filename = f"data/tmp/run.jpg"
             if req.status_code == 200:
                 with open(tmp_filename, "wb") as f:
                     f.write(req.content)
