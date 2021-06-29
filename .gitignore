@@ -1,6 +1,7 @@
 data/classified
 data/skipped
 data/unclassified
+data/tmp
 !*/.gitkeep
 data/top/
 /data/profiles.csv
