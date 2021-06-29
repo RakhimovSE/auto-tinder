@@ -6,6 +6,7 @@ from PIL import Image
 PERSON_CLASS = 1
 SCORE_THRESHOLD = 0.5
 
+
 def run_inference_for_single_image(image, sess):
     ops = tf.get_default_graph().get_operations()
     all_tensor_names = {output.name for op in ops for output in op.outputs}
@@ -54,7 +55,8 @@ def open_graph():
     detection_graph = tf.Graph()
     with detection_graph.as_default():
         od_graph_def = tf.GraphDef()
-        with tf.gfile.GFile('ssd_mobilenet_v1_coco_2017_11_17/frozen_inference_graph.pb', 'rb') as fid:
+        with tf.gfile.GFile('ssd_mobilenet_v1_coco_2017_11_17/frozen_inference_graph.pb',
+                            'rb') as fid:
             serialized_graph = fid.read()
             od_graph_def.ParseFromString(serialized_graph)
             tf.import_graph_def(od_graph_def, name='')
@@ -72,21 +74,25 @@ def get_person(image_path, sess):
     image_np = load_image_into_numpy_array(img)
     image_np_expanded = np.expand_dims(image_np, axis=0)
     output_dict = run_inference_for_single_image(image_np_expanded, sess)
+    w, h = img.size
+
+    def get_cropped_img(person_coordinate):
+        return img.crop((
+            int(w * person_coordinate[1]),
+            int(h * person_coordinate[0]),
+            int(w * person_coordinate[3]),
+            int(h * person_coordinate[2]),
+        ))
 
     persons_coordinates = []
     for i in range(len(output_dict["detection_boxes"])):
         score = output_dict["detection_scores"][i]
         classtype = output_dict["detection_classes"][i]
         if score > SCORE_THRESHOLD and classtype == PERSON_CLASS:
+            return True, get_cropped_img(output_dict["detection_boxes"][i])
+        else:
             persons_coordinates.append(output_dict["detection_boxes"][i])
 
-    w, h = img.size
     for person_coordinate in persons_coordinates:
-        cropped_img = img.crop((
-            int(w * person_coordinate[1]),
-            int(h * person_coordinate[0]),
-            int(w * person_coordinate[3]),
-            int(h * person_coordinate[2]),
-        ))
-        return cropped_img
-    return None
+        return False, get_cropped_img(person_coordinate)
+    return False, None
