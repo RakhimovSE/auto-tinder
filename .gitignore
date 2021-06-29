@@ -1,11 +1,8 @@
-data/classified/negative/*
-!data/classified/negative/0_test_5bad7sasweljku73.jpg
-data/classified/positive/*
-!data/classified/positive/1_test_4tz3kjldfj3482.jpg
+data/classified
+data/skipped
+data/unclassified
+!*/.gitkeep
 data/top/
-data/unclassified/*
-!data/unclassified/test_4tz3kjldfj3482.jpg
-!data/unclassified/test_5bad7sasweljku73.jpg
 /data/profiles.csv
 venv/
 data/tmp/run.jpg
