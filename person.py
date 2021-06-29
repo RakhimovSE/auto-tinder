@@ -54,10 +54,11 @@ class Person(object):
     def download_data(self, sleep_max_for=0):
         if self.exists():
             print("Already exists, skipping.")
-            return
+            return False
         self.download_images(sleep_max_for)
         self.to_csv()
         print("Done.")
+        return True
 
     def predict_likeliness(self, classifier, sess):
         ratings = []
@@ -67,8 +68,8 @@ class Person(object):
             if req.status_code == 200:
                 with open(tmp_filename, "wb") as f:
                     f.write(req.content)
-            img = person_detector.get_person(tmp_filename, sess)
-            if img:
+            person_found, img = person_detector.get_person(tmp_filename, sess)
+            if person_found:
                 img = img.convert('L')
                 img.save(tmp_filename, "jpeg")
                 certainty = classifier.classify(tmp_filename)
