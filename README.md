@@ -80,25 +80,25 @@ The data includes (among many other fields), the following data:
                                 "processed_by_bullseye": true,
                                 "user_customized": false
                             },
-                            "url": "https://images-ssl.gotinder.com/4adfwe547s8df64df/original_879sdfert-lskdföj-8asdf879-987sdflkj.jpeg",
+                            "url": "https://data-ssl.gotinder.com/4adfwe547s8df64df/original_879sdfert-lskdföj-8asdf879-987sdflkj.jpeg",
                             "processedFiles": [
                                 {
-                                    "url": "https://images-ssl.gotinder.com/4adfwe547s8df64df/640x800_879sdfert-lskdföj-8asdf879-987sdflkj.jpg",
+                                    "url": "https://data-ssl.gotinder.com/4adfwe547s8df64df/640x800_879sdfert-lskdföj-8asdf879-987sdflkj.jpg",
                                     "height": 800,
                                     "width": 640
                                 },
                                 {
-                                    "url": "https://images-ssl.gotinder.com/4adfwe547s8df64df/320x400_879sdfert-lskdföj-8asdf879-987sdflkj.jpg",
+                                    "url": "https://data-ssl.gotinder.com/4adfwe547s8df64df/320x400_879sdfert-lskdföj-8asdf879-987sdflkj.jpg",
                                     "height": 400,
                                     "width": 320
                                 },
                                 {
-                                    "url": "https://images-ssl.gotinder.com/4adfwe547s8df64df/172x216_879sdfert-lskdföj-8asdf879-987sdflkj.jpg",
+                                    "url": "https://data-ssl.gotinder.com/4adfwe547s8df64df/172x216_879sdfert-lskdföj-8asdf879-987sdflkj.jpg",
                                     "height": 216,
                                     "width": 172
                                 },
                                 {
-                                    "url": "https://images-ssl.gotinder.com/4adfwe547s8df64df/84x106_879sdfert-lskdföj-8asdf879-987sdflkj.jpg",
+                                    "url": "https://data-ssl.gotinder.com/4adfwe547s8df64df/84x106_879sdfert-lskdföj-8asdf879-987sdflkj.jpg",
                                     "height": 106,
                                     "width": 84
                                 }
@@ -182,15 +182,15 @@ offers a few basic interfaces to the tinder API.
 Let's start with the Person Class. It shall receive API data, a tinder-api object and save all relevant data
 into instance variables. It shall further offer some basic features like "like" or "dislike" that make
 a request to the tinder-api, which allows us to conveniently use "some_person.like()" in order to like
-a profile we find interesting. 
+a profile we find interesting.
 
 ```python
 import datetime
-from geopy.geocoders import Nominatim
 
 TINDER_URL = "https://api.gotinder.com"
 geolocator = Nominatim(user_agent="auto-tinder")
-PROF_FILE = "./profiles.txt"
+PROF_FILE = "data/profiles.txt"
+
 
 class Person(object):
 
@@ -203,23 +203,23 @@ class Person(object):
         self.bio = data.get("bio", "")
         self.distance = data.get("distance_mi", 0) / 1.60934
 
-        self.birth_date = datetime.datetime.strptime(data["birth_date"], '%Y-%m-%dT%H:%M:%S.%fZ') if data.get(
+        self.birth_date = datetime.datetime.strptime(data["birth_date"],
+                                                     '%Y-%m-%dT%H:%M:%S.%fZ') if data.get(
             "birth_date", False) else None
         self.gender = ["Male", "Female", "Unknown"][data.get("gender", 2)]
 
         self.images = list(map(lambda photo: photo["url"], data.get("photos", [])))
 
         self.jobs = list(
-            map(lambda job: {"title": job.get("title", {}).get("name"), "company": job.get("company", {}).get("name")}, data.get("jobs", [])))
+            map(lambda job: {"title": job.get("title", {}).get("name"),
+                             "company": job.get("company", {}).get("name")}, data.get("jobs", [])))
         self.schools = list(map(lambda school: school["name"], data.get("schools", [])))
 
         if data.get("pos", False):
             self.location = geolocator.reverse(f'{data["pos"]["lat"]}, {data["pos"]["lon"]}')
 
-
     def __repr__(self):
         return f"{self.id}  -  {self.name} ({self.birth_date.strftime('%d.%m.%Y')})"
-
 
     def like(self):
         return self._api.like(self.id)
@@ -289,30 +289,30 @@ First, let's extend our Person class with a function that allows us to download 
 
 ```python
 # At the top of auto_tinder.py
-PROF_FILE = "./profiles.txt"
+PROF_FILE = "data/profiles.txt"
 
 # inside the Person-class
-    def download_images(self, folder=".", sleep_max_for=0):
-        with open(PROF_FILE, "r") as f:
-            lines = f.readlines()
-            if self.id in lines:
-                return
-        with open(PROF_FILE, "a") as f:
-            f.write(self.id+"\r\n")
-        index = -1
-        for image_url in self.images:
-            index += 1
-            req = requests.get(image_url, stream=True)
-            if req.status_code == 200:
-                with open(f"{folder}/{self.id}_{self.name}_{index}.jpeg", "wb") as f:
-                    f.write(req.content)
-            sleep(random()*sleep_max_for)
+def download_images(self, folder=".", sleep_max_for=0):
+    with open(PROF_FILE, "r") as f:
+        lines = f.readlines()
+        if self.id in lines:
+            return
+    with open(PROF_FILE, "a") as f:
+        f.write(self.id + "\r\n")
+    index = -1
+    for image_url in self.images:
+        index += 1
+        req = requests.get(image_url, stream=True)
+        if req.status_code == 200:
+            with open(f"{folder}/{self.id}_{self.name}_{index}.jpeg", "wb") as f:
+                f.write(req.content)
+        sleep(random() * sleep_max_for)
 ```
 
 Note that I added some random sleeps here and there, just because we will likely be blocked if we 
 spam the tinder CDN and download many pictures in just a few seconds.
 
-We write all the peoples profile IDs into a file called "profiles.txt". By first scanning the document
+We write all the peoples profile data into a file called "profiles.csv". By first scanning the document
 whether a particular person is already in there, we can skip people we already encountered, and
 we ensure that we don't classify people several times (you will see later why this is a risk).
 
@@ -619,7 +619,7 @@ script with the inceptionv3 model.
 Call the script in your project root directory with the following parameters:
 
 ```shell
-python retrain.py --bottleneck_dir=tf/training_data/bottlenecks --model_dir=tf/training_data/inception --summaries_dir=tf/training_data/summaries/basic --output_graph=tf/training_output/retrained_graph.pb --output_labels=tf/training_output/retrained_labels.txt --image_dir=./images/classified --how_many_training_steps=50000 --testing_percentage=20 --learning_rate=0.001
+python retrain.py --bottleneck_dir=tf/training_data/bottlenecks --model_dir=tf/training_data/inception --summaries_dir=tf/training_data/summaries/basic --output_graph=tf/training_output/retrained_graph.pb --output_labels=tf/training_output/retrained_labels.txt --image_dir=./data/classified --how_many_training_steps=50000 --testing_percentage=20 --learning_rate=0.001
 ```
 
 The learning takes roughly 15 minutes on a GTX 1080 ti, with a final accuracy of about 80% for my
