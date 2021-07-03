@@ -4,13 +4,10 @@ import csv
 from datetime import datetime
 from time import sleep
 
-from geopy.geocoders import Nominatim
 from random import random
 
 from config import DATE_FORMAT, IMAGE_FOLDER, PROF_DATA
 import person_detector
-
-geolocator = Nominatim(user_agent="auto-tinder")
 
 
 class Person(object):
@@ -37,11 +34,6 @@ class Person(object):
                              "company": job.get("company", {}).get("name")}, data.get("jobs", [])))
         self.schools = list(map(lambda school: school["name"], data.get("schools", [])))
 
-        if data.get("pos", False):
-            self.location = geolocator.reverse(f'{data["pos"]["lat"]}, {data["pos"]["lon"]}')
-        else:
-            self.location = None
-
     def __repr__(self):
         return f"{self.id}  -  {self.name} ({self.birth_date.strftime('%d.%m.%Y')})"
 
@@ -62,7 +54,7 @@ class Person(object):
 
     def predict_likeliness(self, classifier, sess):
         ratings = []
-        for image in self.images:
+        for i, image in enumerate(self.images):
             req = requests.get(image, stream=True)
             tmp_filename = f"data/tmp/run.jpg"
             if req.status_code == 200:
@@ -74,6 +66,7 @@ class Person(object):
                 img.save(tmp_filename, "jpeg")
                 certainty = classifier.classify(tmp_filename)
                 pos = certainty["positive"]
+                print(f'\t{i + 1}/{len(self.images)}: {pos}')
                 ratings.append(pos)
         ratings.sort(reverse=True)
         ratings = ratings[:5]
@@ -102,7 +95,6 @@ class Person(object):
             "orientations": "|".join(self.orientations),
             "jobs": "|".join([f"{job['company']} <{job['title']}>" for job in self.jobs]),
             "schools": "|".join(self.schools),
-            "location": self.location,
         }
 
     def to_csv(self):
