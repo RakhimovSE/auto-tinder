@@ -16,7 +16,8 @@ class Classifier():
         t = self.read_tensor_from_image_file(file_name)
 
         # Open up a new tensorflow session and run it on the input
-        results = self._session.run(self._output_operation.outputs[0], {self._input_operation.outputs[0]: t})
+        results = self._session.run(self._output_operation.outputs[0],
+                                    {self._input_operation.outputs[0]: t})
         results = np.squeeze(results)
 
         # Sort the output predictions by prediction accuracy
@@ -31,7 +32,6 @@ class Classifier():
 
     def close(self):
         self._session.close()
-
 
     @staticmethod
     def load_graph(model_file):

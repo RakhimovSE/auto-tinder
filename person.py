@@ -72,6 +72,8 @@ class Person(object):
         ratings = ratings[:5]
         if len(ratings) == 0:
             return 0.001
+        if len(ratings) == 1:
+            return ratings[0] * 0.6
         return ratings[0] * 0.6 + sum(ratings[1:]) / len(ratings[1:]) * 0.4
 
     def exists(self):

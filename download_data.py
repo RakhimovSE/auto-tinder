@@ -8,12 +8,14 @@ from tinder_api import TinderAPI
 if __name__ == "__main__":
     api = TinderAPI(TOKEN)
 
-    counter = 0
+    new_person_counter = 1
+    counter = 1
     while True:
         persons = api.nearby_persons()
         for person in persons:
+            print(f'{new_person_counter}/{counter}\t{person.name}...', end=' ')
+            if person.download_data(sleep_max_for=random() * 3):
+                new_person_counter += 1
             counter += 1
-            print(f'{counter}. {person.name}...', end=' ')
-            person.download_data(sleep_max_for=random() * 3)
             sleep(random() * 10)
         sleep(random() * 10)
