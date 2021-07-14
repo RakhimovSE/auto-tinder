@@ -1,37 +1,51 @@
-from os import listdir, rename
-from os.path import isfile, join
+from os import rename
+from pathlib import Path
 
 import tkinter as tk
 from PIL import ImageTk, Image
 
 from config import IMAGE_FOLDER
 
-images = [f for f in listdir(IMAGE_FOLDER) if isfile(join(IMAGE_FOLDER, f))]
-unclassified_images = filter(lambda image: not (image.startswith("0_") or image.startswith("1_")), images)
+images = [str(path).split('/')[-1] for path in Path(IMAGE_FOLDER).rglob('*.jpeg')]
+unclassified_images = sorted(filter(
+    lambda image: not (image.startswith("0_") or image.startswith("1_") or 'checkpoint' in image),
+    images))
 current = None
+counter = 0
+
 
 def next_img():
-    global current, unclassified_images
+    global current, unclassified_images, counter
     try:
-        current = next(unclassified_images)
-    except StopIteration:
+        current = unclassified_images[counter]
+    except IndexError:
         root.quit()
-    print(current)
-    pil_img = Image.open(IMAGE_FOLDER+"/"+current)
+        return
+    counter += 1
+    print(f'{counter}/{len(unclassified_images)}\t{current}')
+    try:
+        pil_img = Image.open(IMAGE_FOLDER + "/" + current)
+    except IOError as ex:
+        print(ex)
+        next_img()
+        return
     width, height = pil_img.size
     max_height = 1000
     if height > max_height:
         resize_factor = max_height / height
-        pil_img = pil_img.resize((int(width*resize_factor), int(height*resize_factor)), resample=Image.LANCZOS)
+        pil_img = pil_img.resize((int(width * resize_factor), int(height * resize_factor)),
+                                 resample=Image.LANCZOS)
     img_tk = ImageTk.PhotoImage(pil_img)
     img_label.img = img_tk
     img_label.config(image=img_label.img)
 
+
 def positive(arg):
     global current
     print("Positive")
-    rename(IMAGE_FOLDER+"/"+current, IMAGE_FOLDER+"/1_"+current)
+    rename(IMAGE_FOLDER + "/" + current, IMAGE_FOLDER + "/1_" + current)
     next_img()
+
 
 def negative(arg):
     global current
@@ -55,8 +69,6 @@ if __name__ == "__main__":
 
     btn = tk.Button(root, text='Next image', command=next_img)
 
-    next_img() # load first image
+    next_img()  # load first image
 
     root.mainloop()
-
-
