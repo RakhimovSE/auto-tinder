@@ -1,5 +1,6 @@
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+
 
 class Classifier():
     def __init__(self, graph, labels):

@@ -2,7 +2,7 @@ from time import time, sleep
 from random import random
 import csv
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from config import TOKEN, PROF_DATA
 from tinder_api import TinderAPI

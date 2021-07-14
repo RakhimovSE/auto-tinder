@@ -1,6 +1,6 @@
 import numpy as np
 from object_detection.utils import ops as utils_ops
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from PIL import Image
 
 PERSON_CLASS = 1

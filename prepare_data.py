@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from config import IMAGE_FOLDER, POS_FOLDER, NEG_FOLDER
 import person_detector
