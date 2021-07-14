@@ -33,6 +33,8 @@ class User(object):
                              'jobs'] if 'title' in job and 'company' not in job])
         except ValueError:
             pass
+        except KeyError:
+            pass
 
     @property
     def instagram_username(self):
